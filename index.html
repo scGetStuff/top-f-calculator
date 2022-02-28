@@ -5,13 +5,49 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
     <title>Calculator</title>
 </head>
 
 <body>
     <h1>Calculator</h1>
+
+    <div class="display">
+        <input id="result" type="text" value="0" readonly>
+    </div>
+
+    <div class="container">
+
+        <div class="numbers">
+            <button value="7" class="btn-number">7</button>
+            <button value="8" class="btn-number">8</button>
+            <button value="9" class="btn-number">9</button>
+            <button value="4" class="btn-number">4</button>
+            <button value="5" class="btn-number">5</button>
+            <button value="6" class="btn-number">6</button>
+            <button value="1" class="btn-number">1</button>
+            <button value="2" class="btn-number">2</button>
+            <button value="3" class="btn-number">3</button>
+            <button value="negate" class="btn-number">+/-</button>
+            <button value="0" class="btn-number">0</button>
+            <button value="decimal" class="btn-number">.</button>
+        </div>
+
+        <div class="operators">
+            <button value="divide" class="btn-operator">&divide;</button>
+            <button value="multiply" class="btn-operator">&times;</button>
+            <button value="subtract" class="btn-operator">&minus;</button>
+            <button value="add" class="btn-operator">&plus;</button>
+        </div>
+
+        <div class="actions">
+            <button value="clear" class="btn-action">CE</button>
+            <button value="equal" class="btn-action">&equals;</button>
+        </div>
+
+    </div>
+
 </body>
 
 </html>

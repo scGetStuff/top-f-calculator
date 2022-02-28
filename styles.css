@@ -2,11 +2,79 @@ html {
     box-sizing: border-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: inherit;
 }
 
 body * {
     margin: 0;
     padding: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.container > div {
+    gap: 5px;
+}
+
+.container {
+    border: 3px solid black;
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.display {
+    display: flex;
+    justify-content: flex-end;
+    margin: 1rem;
+}
+
+#result {
+    text-align: right;
+    font-size: xx-large;
+}
+
+.numbers {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(4, auto);
+}
+
+.operators,
+.actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.actions {
+    justify-content: flex-end;
+}
+
+button {
+    font-size: x-large;
+    height: 5rem;
+    width: 5rem;
+}
+
+.btn-number {
+    font-weight: bold;
+}
+
+.btn-operator {
+    background-color: black;
+    color: white;
+}
+
+.btn-action {
+    background-color: red;
+    color: black;
 }
