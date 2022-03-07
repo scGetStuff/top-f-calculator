@@ -6,40 +6,48 @@ html {
 *::before,
 *::after {
     box-sizing: inherit;
-}
-
-body * {
     margin: 0;
     padding: 0;
 }
 
 body {
+    background-color: slategray;
     display: flex;
-    align-items: center;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.container > div {
-    gap: 5px;
-}
-
-.container {
-    border: 3px solid black;
+.calculator {
+    outline: 5px solid black;
+    padding: 1rem;
     display: flex;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
-    gap: 5px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
 }
 
 .display {
+    width: 100%;
     display: flex;
-    justify-content: flex-end;
-    margin: 1rem;
 }
 
 #result {
+    width: 100%;
     text-align: right;
     font-size: xx-large;
+}
+
+.buttons,
+.buttons > div {
+    gap: 5px;
+}
+
+.buttons {
+    border: 1px solid black;
+    display: flex;
+    justify-content: flex-start;
 }
 
 .numbers {
