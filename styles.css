@@ -28,11 +28,6 @@ body {
     gap: 1rem;
 }
 
-.display {
-    width: 100%;
-    display: flex;
-}
-
 #result {
     width: 100%;
     text-align: right;
