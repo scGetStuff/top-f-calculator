@@ -10,7 +10,6 @@
 // TODO: just for as I impliment
 console.clear();
 
-// TODO: won't care about leading 0s for now
 // TODO: may need some error handling, will think about it later
 // TODO: a seperate display for expression, operand1 and operator
 // TODO: display field needs to validate length and make sure it waps ok if needed
@@ -95,6 +94,14 @@ function appendOperand(n) {
         return;
     }
 
+    // limit leading 0's to 1
+    if (n === '0' && operand.length === 1 && operand[0] === '0')
+        return;
+
+    // user starts with '.'; '0' is in the display but not the buffer, so add it
+    if (n === '.' && operand.length === 0)
+        operand.push('0');
+
     // decimal can only occur once
     if (n === '.' && operand.includes('.'))
         return;
@@ -155,7 +162,7 @@ function back() {
     operand.pop();
 
     // do not allow empty display, default 0
-    if (operand.length === 0){
+    if (operand.length === 0) {
         setDisplay('0');
         return;
     }
@@ -183,16 +190,14 @@ function mult() {
     return operand1 * operand2;
 }
 
-// TODO: handle divide by 0
 function divide() {
-    //if (operand2 === 0)
     return operand1 / operand2;
 }
 
-// TODO: probably just a flag
-// maybe need 2, one for each operand
-// kind of harder cause of the buffer, can't just multiply -1
-// cause i'm using an array of chars
+// TODO: kind of harder cause of the buffer
+// i want to just multiply current operand by -1
+// anything i think of will cause a problem in back(), would have to check for buffer === '-'
+// flip a flag 1, -1 and multiply in appendOperand()
 function negate() {
 
 }
