@@ -17,7 +17,6 @@ console.clear();
 // TODO: round so display does not overflow
 // TODO: operator need to evaluate expression if they started the second operand
 // operator just overwrites in initial implimentation
-// TODO: back will clear the display, should have 0
 
 
 // key press and button have to map to the same code, becasuse i said so
@@ -31,11 +30,9 @@ const display = document.getElementById('result');
 
 
 function keyHandler(e) {
-
-    // allow shift for no numeric pad
+    // allow shift for keys not on numeric pad
     if (e.altKey || e.ctrlKey || e.metaKey || e.repeat)
         return;
-
     const key = e.key.toLowerCase();  // Backspace, Escape, potentialy others
     doStuffWithKey(key);
 }
@@ -93,9 +90,10 @@ function doStuffWithKey(key) {
 
 function appendOperand(n) {
 
-    // TODO: not in yet, just ignore
-    if (n === 'negate')
+    if (n === 'negate') {
+        alert('No negate yet');
         return;
+    }
 
     // decimal can only occur once
     if (n === '.' && operand.includes('.'))
@@ -148,13 +146,20 @@ function operate() {
         '/': divide
     };
 
-    // call the operator function adi reset first operand for chaining operations
+    // call the operator function and reset first operand for chaining operations
     operand1 = mapOfStuffThatWouldHaveBeenStupidLookingBranching[operatorValue]();
     setDisplay(operand1);
 }
 
 function back() {
     operand.pop();
+
+    // do not allow empty display, default 0
+    if (operand.length === 0){
+        setDisplay('0');
+        return;
+    }
+
     setDisplay(operand.join(''));
 }
 
@@ -180,7 +185,7 @@ function mult() {
 
 // TODO: handle divide by 0
 function divide() {
-    // if (operand2 === 0)
+    //if (operand2 === 0)
     return operand1 / operand2;
 }
 
