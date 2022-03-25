@@ -1,32 +1,12 @@
 "use strict"
 
-// calc 2 at a time, do not try to parse an equation
-// 1 + 2 + 3 + 4
-// 3 + 3 + 4
-// 6 + 4
-// 10
-
-
 // TODO: just for as I impliment
 console.clear();
 
-// TODO: may need some error handling, will think about it later
-// TODO: a seperate display for expression, operand1 and operator
-// TODO: display field needs to validate length and make sure it waps ok if needed
-// TODO: round so display does not overflow
-// TODO: operator need to evaluate expression if they started the second operand
-// operator just overwrites in initial implimentation
-
-
-// key press and button have to map to the same code, becasuse i said so
 document.addEventListener('keydown', keyHandler);
-// i wanted to do this at doc level, but i worry about click
-// and drag out of button screwing things up, so it goes on all buttons
 const buttons = [...document.getElementsByTagName('button')];
 buttons.forEach(button => button.addEventListener('click', clickHandler));
-
 const display = document.getElementById('result');
-
 
 function keyHandler(e) {
     // allow shift for keys not on numeric pad
@@ -45,15 +25,22 @@ function setDisplay(s) {
 }
 
 
+// TODO: may need some error handling, will think about it later
+// TODO: a seperate display for expression, operand1 and operator
+// TODO: display field needs to validate length and make sure it waps ok if needed
+// TODO: round so display does not overflow
+// TODO: operator need to evaluate expression if they started the second operand
+// TODO: NaN issues
+// TODO: divide by zero message
+
 // TODO: need to wrap this stuff up in an expression object
 // haven't done class in js yet
 // make the operator functions methods?
 let operand1 = 0;
 let operand2 = 0;
-let operatorValue = '';
+let operatorValue = null;
 // using array as a buffer for the didgits entered
 const operand = [];
-
 
 // i tried a map of functions pointers, but it turned into a big dumb list with hardcoded keys that matched the html and made me want to kill myself
 // i refuse to have a bunch of stupid looking branching, got it down to lists and a few branches
@@ -98,24 +85,29 @@ function appendOperand(n) {
     if (n === '0' && operand.length === 1 && operand[0] === '0')
         return;
 
-    // user starts with '.'; '0' is in the display but not the buffer, so add it
-    if (n === '.' && operand.length === 0)
-        operand.push('0');
-
-    // decimal can only occur once
-    if (n === '.' && operand.includes('.'))
-        return;
+    if (n === '.') {
+        // user starts with '.'; '0' is in the display but not the buffer, so add it
+        if (operand.length === 0)
+            operand.push('0');
+        // decimal can only occur once
+        if (operand.includes('.'))
+            return;
+    }
 
     operand.push(n);
     setDisplay(operand.join(''));
 }
 
 function setOperator(s) {
+
+    if (operatorValue !== null)
+        operate();
+
     operatorValue = s;
     setDisplay(s);
 
     // set the first operand and clear the buffer
-    operand1 = Number.parseInt(operand.join(''));
+    operand1 = Number.parseFloat(operand.join(''));
     operand.splice(0, operand.length);
 }
 
@@ -139,12 +131,8 @@ function doAction(key) {
 
 function operate() {
 
-    if (operatorValue === '')
+    if (operatorValue === null)
         return;
-
-    // set the second operand and clear the buffer
-    operand2 = Number.parseInt(operand.join(''));
-    operand.splice(0, operand.length);
 
     const mapOfStuffThatWouldHaveBeenStupidLookingBranching = {
         '+': add,
@@ -153,9 +141,15 @@ function operate() {
         '/': divide
     };
 
-    // call the operator function and reset first operand for chaining operations
-    operand1 = mapOfStuffThatWouldHaveBeenStupidLookingBranching[operatorValue]();
-    setDisplay(operand1);
+    // set the second operand and run the calculation
+    operand2 = Number.parseFloat(operand.join(''));
+    const result = mapOfStuffThatWouldHaveBeenStupidLookingBranching[operatorValue]();
+
+    // reset buffer with result for use by next operation
+    clear();
+    const chars = result.toString().split('');
+    chars.forEach(char => operand.push(char));
+    setDisplay(result);
 }
 
 function back() {
@@ -173,9 +167,9 @@ function back() {
 function clear() {
     operand1 = 0;
     operand2 = 0;
-    operatorValue = '';
+    operatorValue = null;
     operand.splice(0, operand.length);
-    setDisplay(operand1);
+    setDisplay('0');
 }
 
 function add() {
@@ -194,10 +188,9 @@ function divide() {
     return operand1 / operand2;
 }
 
-// TODO: kind of harder cause of the buffer
-// i want to just multiply current operand by -1
-// anything i think of will cause a problem in back(), would have to check for buffer === '-'
+// TODO: kind of hard cause of the buffer
 // flip a flag 1, -1 and multiply in appendOperand()
+// will cause a problem in back(), would have to check for buffer === '-'
 function negate() {
 
 }
