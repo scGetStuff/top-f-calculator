@@ -29,10 +29,15 @@ body {
     gap: 1rem;
 }
 
-#result {
+.display {
     width: 100%;
     text-align: right;
     font-size: xx-large;
+}
+.display>div {
+    border: 1px solid black;
+    width: 100%;
+    overflow-wrap: break-word;
 }
 
 .buttons,
@@ -41,7 +46,6 @@ body {
 }
 
 .buttons {
-    border: 1px solid black;
     display: flex;
     justify-content: flex-start;
 }
