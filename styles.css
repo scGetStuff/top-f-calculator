@@ -30,14 +30,14 @@ body {
 }
 
 .display {
-    width: 100%;
+    /* TODO: hack to get the display to wrap */
+    width: 420px;
+    word-break: break-all;
     text-align: right;
     font-size: xx-large;
 }
 .display>div {
     border: 1px solid black;
-    width: 100%;
-    overflow-wrap: break-word;
 }
 
 .buttons,
