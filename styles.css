@@ -20,6 +20,8 @@ body {
 }
 
 .calculator {
+    /* TODO: hack to get the display to wrap */
+    width: 370px;
     outline: 5px solid black;
     padding: 1rem;
     display: flex;
@@ -30,8 +32,7 @@ body {
 }
 
 .display {
-    /* TODO: hack to get the display to wrap */
-    width: 420px;
+    width: 100%;
     word-break: break-all;
     text-align: right;
     font-size: xx-large;
@@ -69,8 +70,8 @@ body {
 
 button {
     font-size: x-large;
-    height: 5rem;
-    width: 5rem;
+    height: 4rem;
+    width: 4rem;
 }
 
 .btn-number {
