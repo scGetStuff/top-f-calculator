@@ -1,14 +1,20 @@
 # top-calculator
 ## The Odin Project, Foundations Path, JavaScript Basics "Calculator" project
 
+Design based on Windows 10 calculator functionality.
 
-Design based on Windows 10 calculator functonality.
+I believe I covered all the EXTRA CREDIT stuff and some additional features.
 
-I believe I covered all the EXTRA CREDIT stuff and a few additional features.
+I'm not a UI person, I'm not concerned with pretty, just aligned and functional.  My priority is making it work and making the code readable.  Perhaps I comment too much, cleaned out some, it's not really for you, just me talking to myself.
+
+I wanted to add a flash on the corresponding button whey you type on the keyboard, but not sure I want to spend any more time on interface stuff, want to move on to next course.
+
+I think my approach may be over complicated.
+I wanted to avoid hard coded crap, did not want a bunch of if statements comparing key values.
+Also did not want a bunch of separate event bindings; I wanted it to be driven by the button value.
 
 There are some known issues
-- This is not responsive by design, buttons sizes are static, one hack for wraping display field has fixed width.
+- This is not responsive by design, buttons sizes are static, one hack to make the display field wrap, had to use a fixed width.
 - Using a bunch of globals, haven't done anything with modules or classes yet, future projects will suck less.
 - Not doing anything to validate numbers out of range, assuming it will result in NaN.
-- I think my aproach may be over complicate.
-I wanted to avoid hard coded crap, did not want a bunch of if statements compairing key values.
+- Negate not done.
