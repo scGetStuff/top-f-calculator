@@ -2,7 +2,7 @@
 
 console.clear();
 
-// DOM referances & event binding
+// event binding
 document.addEventListener('keydown', keyHandler);
 const buttons = [...document.getElementsByTagName('button')];
 buttons.forEach(button => button.addEventListener('click', clickHandler));
@@ -17,7 +17,7 @@ const opBtnValues = list.map(element => element.value);
 list = [...document.querySelectorAll('.btn-action')];
 const actValues = list.map(element => element.value);
 list = undefined;
-// add keyboard stuff that functions same as action buttons
+// add alternate keyboard keys that functions same as action buttons
 actValues.push('=');
 actValues.push('delete');
 
@@ -30,9 +30,9 @@ let operand2 = null;
 let operatorValue = null;
 let signMultiplier = 1;
 // using array as a buffer for the didgits entered
-const operand = [];
-// TODO: kind of lame, but i need to know if i am in a new expression or building off of result
-// typing after a calculation was append numbers to the result
+const operandDigitBuffer = [];
+// i need to know if i am in a new expression or building off of a result
+// typing after a calculation was appending numbers to the result
 // i want them to overwrite like windows calculator does
 let isResult = false;
 
@@ -49,29 +49,6 @@ function clickHandler(e) {
     doStuffWithKey(this.value);
 }
 
-// TODO: kind of messy, need to fix this for negatives, get it down to 
-// single function that driven off the state of the expresssion
-// old code was simple single string display
-// added second display field for the full expression
-function displayUpdate(s = '') {
-    // user enters operand digits
-    if (s !== '') {
-        displayOperand.innerText = s;
-        displayExpression.innerText = s;
-    }
-    // once they have hit an operator can use the data in the variables
-    if (operatorValue != null)
-        displayExpression.innerText = `${operand1} ${operatorValue} ${s}`;
-}
-
-function displayEquation(result) {
-    displayOperand.innerText = result;
-    displayExpression.innerText = `${operand1} ${operatorValue} ${operand2} = ${result}`;
-}
-
-function displayResetOperand() {
-    displayOperand.innerText = '0';
-}
 
 function doStuffWithKey(key) {
 
@@ -89,7 +66,6 @@ function doStuffWithKey(key) {
         doAction(key);
         return;
     }
-
 }
 
 function appendOperand(key) {
@@ -101,26 +77,26 @@ function appendOperand(key) {
     }
 
     if (isResult)
-        clear();
+        clearExpression();
 
     if (shouldAppend(key)) {
-        operand.push(key);
-        displayUpdate(operand.join(''));
+        operandDigitBuffer.push(key);
+        updateDisplayDivs(operandDigitBuffer.join(''));
     }
 }
 
 // some special cases for 0 and decimal that were poluting appendOperand()
 function shouldAppend(key) {
     // limit leading 0's to 1
-    if (key === '0' && operand.length === 1 && operand[0] === '0')
+    if (key === '0' && operandDigitBuffer.length === 1 && operandDigitBuffer[0] === '0')
         return false;
 
     if (key === '.') {
         // user starts with '.'; '0' is in the display but not the buffer, so add it
-        if (operand.length === 0)
-            operand.push('0');
+        if (operandDigitBuffer.length === 0)
+            operandDigitBuffer.push('0');
         // decimal can only occur once
-        if (operand.includes('.'))
+        if (operandDigitBuffer.includes('.'))
             return false;
     }
 
@@ -129,31 +105,25 @@ function shouldAppend(key) {
 
 function setOperator(operator) {
 
+    // user enters 2 + 3 + 4
     if (isRunable())
         operate();
 
+    operatorValue = operator;
+
     // user is repeatedly pounding on operator buttons before entering second operand
-    if (operand1 != null && operand.length == 0) {
-        operatorValue = operator;
-        displayUpdate();
+    if (operand1 != null && operandDigitBuffer.length === 0) {
+        updateDisplayOperator();
         return;
     }
 
-    operatorValue = operator;
-
-    // if the user hits an operator imediatly after load/refresh, the buffer is empty, default to 0
-    if (operand.length === 0)
-        operand.push('0');
-
-    // set the first operand and clear the buffer
-    operand1 = Number.parseFloat(operand.join(''));
-    operand.splice(0, operand.length);
-    displayUpdate();
+    operand1 = getOperandFromBuffer();
+    updateDisplayDivs(operand1);
     isResult = false;
 }
 
 function isRunable() {
-    return (operand1 != null && operatorValue != null && operand.length > 0);
+    return (operand1 != null && operatorValue != null && operandDigitBuffer.length > 0);
 }
 
 function doAction(key) {
@@ -169,8 +139,8 @@ function doAction(key) {
     }
 
     if (key === 'escape') {
-        clear();
-        displayUpdate('0');
+        clearExpression();
+        updateDisplayDivs();
         return;
     }
 }
@@ -184,10 +154,10 @@ const mapOfStuffThatWouldHaveBeenStupidLookingBranching = {
 
 function operate() {
 
-    if (operatorValue == null || operand.length == 0)
+    if (!isRunable())
         return;
 
-    operand2 = Number.parseFloat(operand.join(''));
+    operand2 = getOperandFromBuffer();
     let result = mapOfStuffThatWouldHaveBeenStupidLookingBranching[operatorValue]();
     if (!isValidResult(result))
         return;
@@ -195,24 +165,27 @@ function operate() {
     // round answers with long decimals so that they don’t overflow the screen 
     if (!Number.isInteger(result))
         result = Number.parseFloat(result.toFixed(4));
-    displayEquation(result);
+    updateDisplayDivs(result);
+    updateDisplayExpression(buildFullExpression(result));
+
+    clearExpression();
 
     // reset buffer with result for use by next operation
-    clear();
     const chars = result.toString().split('');
-    chars.forEach(char => operand.push(char));
+    chars.forEach(char => operandDigitBuffer.push(char));
     isResult = true;
 }
 
 function isValidResult(num) {
+
     // typeof() fails for numeric strings, isFinite() works for all except null
     const isValid = (isFinite(num) && num != null);
 
     if (!isValid) {
         // display the equation that produced the alert, but reset the data to 0
-        displayEquation(num);
-        displayResetOperand();
-        clear();
+        updateDisplayDivs();
+        updateDisplayExpression(buildFullExpression(num));
+        clearExpression();
         alert(`Bad stuff happened: ${num}`);
     }
 
@@ -220,24 +193,50 @@ function isValidResult(num) {
 }
 
 function back() {
-    operand.pop();
 
-    // do not allow empty display, default 0
-    if (operand.length === 0) {
-        displayUpdate('0');
+    operandDigitBuffer.pop();
+
+    // do not allow empty display
+    if (operandDigitBuffer.length === 0) {
+        updateDisplayDivs();
         return;
     }
 
-    displayUpdate(operand.join(''));
+    updateDisplayDivs(operandDigitBuffer.join(''));
 }
 
-function clear() {
+// data only, UI is seperate
+function clearExpression() {
     operand1 = null;
     operand2 = null;
+    signMultiplier = 1;
     operatorValue = null;
-    operand.splice(0, operand.length);
+    operandDigitBuffer.splice(0, operandDigitBuffer.length);
     isResult = false;
 }
+
+// TODO: will use the negate flag here and in display methods
+// so operand buffer will not have the '-' char in it, but operand variable will be negative
+function getOperandFromBuffer() {
+
+    // display defaults to 0, handle empty buffer
+    if (operandDigitBuffer.length === 0)
+        operandDigitBuffer.push('0');
+
+    // TODO: do I want to check NaN here?
+    const num = Number.parseFloat(operandDigitBuffer.join(''));
+
+    // reset buffer for use in the next operand
+    operandDigitBuffer.splice(0, operandDigitBuffer.length);
+
+    //return signMultiplier * num;
+    return num;
+}
+
+function negate() {
+    signMultiplier *= -1;
+}
+
 
 function add() {
     return operand1 + operand2;
@@ -255,16 +254,27 @@ function divide() {
     return operand1 / operand2;
 }
 
-// TODO: kind of hard cause of the buffer
-// flip a flag 1, -1 and multiply in appendOperand()
-// will cause a problem in back(), would have to check for buffer === '-'
-function negate() {
-    signMultiplier *= -1;
+
+// TODO: add negate to display
+function updateDisplayDivs(s = '0') {
+
+    // first or second operand digits being added
+    displayOperand.innerText = s;
+    displayExpression.innerText = s;
+
+    // second operand in progress, add the partial expression
+    if (operand1 !== null && operatorValue != null && operand2 === null)
+        updateDisplayOperator(s);
 }
 
-// TODO: plan is to use this as a wraper for setting an operand
-// will use the negate flag here, so operand buffer will not have the 
-// - char in it, but the variable will be negative
-function calcOperand() {
-    return signMultiplier * Number.parseFloat(operand.join(''));
+function updateDisplayOperator(s = '') {
+    displayExpression.innerText = `${operand1} ${operatorValue} ${s}`;
+}
+
+function updateDisplayExpression(s = '0') {
+    displayExpression.innerText = s;
+}
+
+function buildFullExpression(result) {
+    return `${operand1} ${operatorValue} ${operand2} = ${result}`;
 }
