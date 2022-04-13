@@ -2,24 +2,24 @@
 
 console.clear();
 
-// event binding
 document.addEventListener('keydown', keyHandler);
 const buttons = [...document.getElementsByTagName('button')];
 buttons.forEach(button => button.addEventListener('click', clickHandler));
+
 const displayExpression = document.getElementById('expression');
 const displayOperand = document.getElementById('operand');
 
-// lists of button values
-let list = [...document.querySelectorAll('.btn-number')];
-const numBtnValues = list.map(element => element.value);
-list = [...document.querySelectorAll('.btn-operator')];
-const opBtnValues = list.map(element => element.value);
-list = [...document.querySelectorAll('.btn-action')];
-const actValues = list.map(element => element.value);
-list = undefined;
+const numberKeyValues = buildArrayOfValues('.btn-number');
+const operationKeyValues = buildArrayOfValues('.btn-operator');
+const actionKeyValues = buildArrayOfValues('.btn-action');
 // add alternate keyboard keys that functions same as action buttons
-actValues.push('=');
-actValues.push('delete');
+actionKeyValues.push('=');
+actionKeyValues.push('delete');
+
+function buildArrayOfValues(cssClass = '') {
+    const list = [...document.querySelectorAll(cssClass)];
+    return list.map(element => element.value);
+}
 
 // expression data
 // TODO: need to wrap this stuff up in an expression object
@@ -28,17 +28,16 @@ actValues.push('delete');
 let operand1 = null;
 let operand2 = null;
 let operatorValue = null;
-let signMultiplier = 1;
-// using array as a buffer for the didgits entered
 const operandDigitBuffer = [];
+let signMultiplier = 1;
 // i need to know if i am in a new expression or building off of a result
-// typing after a calculation was appending numbers to the result
-// i want them to overwrite like windows calculator does
+// origional behavior was appending numbers to the result, 
+// i want it to overwrite like the windows calculator does
 let isResult = false;
 
 
 function keyHandler(e) {
-    // allow shift for using keys that are not on the numeric pad
+    // e.shiftKey is allowed so user can use keys that are not on the numeric pad
     if (e.altKey || e.ctrlKey || e.metaKey || e.repeat)
         return;
     const key = e.key.toLowerCase();  // Backspace, Escape, potentialy others
@@ -52,17 +51,17 @@ function clickHandler(e) {
 
 function doStuffWithKey(key) {
 
-    if (numBtnValues.includes(key)) {
+    if (numberKeyValues.includes(key)) {
         appendOperand(key);
         return;
     }
 
-    if (opBtnValues.includes(key)) {
+    if (operationKeyValues.includes(key)) {
         setOperator(key);
         return;
     }
 
-    if (actValues.includes(key)) {
+    if (actionKeyValues.includes(key)) {
         doAction(key);
         return;
     }
@@ -72,7 +71,7 @@ function appendOperand(key) {
 
     if (key === 'negate') {
         negate();
-        alert('No negate yet');
+        writeBufferToDisplay()
         return;
     }
 
@@ -81,8 +80,14 @@ function appendOperand(key) {
 
     if (shouldAppend(key)) {
         operandDigitBuffer.push(key);
-        updateDisplayDivs(operandDigitBuffer.join(''));
+        writeBufferToDisplay()
     }
+}
+
+function writeBufferToDisplay() {
+    const digits = operandDigitBuffer.join('');
+    updateDisplayOperand(digits);
+    updateDisplayExpression(buildOperatorExpression(digits));
 }
 
 // some special cases for 0 and decimal that were poluting appendOperand()
@@ -105,25 +110,30 @@ function shouldAppend(key) {
 
 function setOperator(operator) {
 
-    // user enters 2 + 3 + 4
+    // user enters 2 + 3 + 4; evaluate 2 + 3 first
     if (isRunable())
         operate();
 
     operatorValue = operator;
 
     // user is repeatedly pounding on operator buttons before entering second operand
-    if (operand1 != null && operandDigitBuffer.length === 0) {
-        updateDisplayOperator();
+    if (operand1 !== null && operandDigitBuffer.length === 0) {
+        updateDisplayExpression(buildOperatorExpression());
         return;
     }
 
     operand1 = getOperandFromBuffer();
-    updateDisplayDivs(operand1);
+    updateDisplayOperand(operand1);
+    updateDisplayExpression(buildOperatorExpression());
     isResult = false;
 }
 
 function isRunable() {
     return (operand1 != null && operatorValue != null && operandDigitBuffer.length > 0);
+}
+
+function isSecondOperand() {
+    return (operand1 != null);
 }
 
 function doAction(key) {
@@ -140,12 +150,13 @@ function doAction(key) {
 
     if (key === 'escape') {
         clearExpression();
-        updateDisplayDivs();
+        updateDisplayOperand('0');
+        updateDisplayExpression('0');
         return;
     }
 }
 
-const mapOfStuffThatWouldHaveBeenStupidLookingBranching = {
+const operationFunction = {
     '+': add,
     '-': sub,
     '*': mult,
@@ -158,16 +169,16 @@ function operate() {
         return;
 
     operand2 = getOperandFromBuffer();
-    let result = mapOfStuffThatWouldHaveBeenStupidLookingBranching[operatorValue]();
+    let result = operationFunction[operatorValue]();
     if (!isValidResult(result))
         return;
 
     // round answers with long decimals so that they don’t overflow the screen 
     if (!Number.isInteger(result))
         result = Number.parseFloat(result.toFixed(4));
-    updateDisplayDivs(result);
-    updateDisplayExpression(buildFullExpression(result));
 
+    updateDisplayOperand(result);
+    updateDisplayExpression(buildFullExpression(result));
     clearExpression();
 
     // reset buffer with result for use by next operation
@@ -178,12 +189,12 @@ function operate() {
 
 function isValidResult(num) {
 
-    // typeof() fails for numeric strings, isFinite() works for all except null
-    const isValid = (isFinite(num) && num != null);
+    const isValid = isValidNumber(num);
 
     if (!isValid) {
-        // display the equation that produced the alert, but reset the data to 0
-        updateDisplayDivs();
+        // display the equation that produced the alert, 
+        // but reset the data to 0 to avoid errors
+        updateDisplayOperand('0');
         updateDisplayExpression(buildFullExpression(num));
         clearExpression();
         alert(`Bad stuff happened: ${num}`);
@@ -192,17 +203,24 @@ function isValidResult(num) {
     return isValid;
 }
 
+// isFinite() filters out all except null and blank string
+function isValidNumber(num) {
+    return (isFinite(num) && num != null && num !== '');
+}
+
 function back() {
 
     operandDigitBuffer.pop();
 
     // do not allow empty display
     if (operandDigitBuffer.length === 0) {
-        updateDisplayDivs();
+        updateDisplayOperand('0');
+        // don't want the 0 in the expresion, they must enter something to move foward
+        updateDisplayExpression(buildOperatorExpression());
         return;
     }
 
-    updateDisplayDivs(operandDigitBuffer.join(''));
+    writeBufferToDisplay();
 }
 
 // data only, UI is seperate
@@ -215,8 +233,6 @@ function clearExpression() {
     isResult = false;
 }
 
-// TODO: will use the negate flag here and in display methods
-// so operand buffer will not have the '-' char in it, but operand variable will be negative
 function getOperandFromBuffer() {
 
     // display defaults to 0, handle empty buffer
@@ -224,17 +240,49 @@ function getOperandFromBuffer() {
         operandDigitBuffer.push('0');
 
     // TODO: do I want to check NaN here?
-    const num = Number.parseFloat(operandDigitBuffer.join(''));
+    let num = Number.parseFloat(operandDigitBuffer.join(''));
+    
+    num *= signMultiplier;
+    signMultiplier = 1;
 
     // reset buffer for use in the next operand
     operandDigitBuffer.splice(0, operandDigitBuffer.length);
 
-    //return signMultiplier * num;
     return num;
 }
 
+// the operand buffer will not have the '-' char in it, but operand variable will be negative
 function negate() {
     signMultiplier *= -1;
+}
+
+function updateDisplayOperand(n = '') {
+    displayOperand.innerText = decorateNegate(n);
+}
+
+function updateDisplayExpression(s = '') {
+    displayExpression.innerText = s;
+}
+
+function buildFullExpression(result) {
+    return `${operand1} ${operatorValue} ${operand2} = ${result}`;
+}
+
+function buildOperatorExpression(n = '') {
+    // this check was needed in a few places, got messy
+    // put it here to avoid duplication
+    if (isSecondOperand())
+        return `${operand1} ${operatorValue} ${decorateNegate(n)}`;
+    else
+        return n;
+}
+
+function decorateNegate(s = '') {
+    if (isValidNumber(s)){
+        const num = Number.parseFloat(s);
+        s = `${signMultiplier * num}`;
+    }
+    return s;
 }
 
 
@@ -252,29 +300,4 @@ function mult() {
 
 function divide() {
     return operand1 / operand2;
-}
-
-
-// TODO: add negate to display
-function updateDisplayDivs(s = '0') {
-
-    // first or second operand digits being added
-    displayOperand.innerText = s;
-    displayExpression.innerText = s;
-
-    // second operand in progress, add the partial expression
-    if (operand1 !== null && operatorValue != null && operand2 === null)
-        updateDisplayOperator(s);
-}
-
-function updateDisplayOperator(s = '') {
-    displayExpression.innerText = `${operand1} ${operatorValue} ${s}`;
-}
-
-function updateDisplayExpression(s = '0') {
-    displayExpression.innerText = s;
-}
-
-function buildFullExpression(result) {
-    return `${operand1} ${operatorValue} ${operand2} = ${result}`;
 }
