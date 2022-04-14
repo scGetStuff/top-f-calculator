@@ -15,3 +15,6 @@ There are some known issues
 - This is not responsive by design, buttons sizes are static, one hack to make the display field wrap, had to use a fixed width.
 - Using a bunch of globals, haven't done anything with modules or classes yet, future projects will suck less.
 - Not doing anything to validate numbers out of range, assuming it will result in NaN.
+
+
+renamed repo, testing config
